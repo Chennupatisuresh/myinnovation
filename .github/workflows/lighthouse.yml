@@ -1,0 +1,67 @@
+name: MYINNOVATION - Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci --version
+
+      - name: Run Lighthouse Audits
+        run: |
+          echo "Starting Lighthouse for MYINNOVATION..."
+          lhci autorun --config=lighthouserc.js
+          echo "Lighthouse complete!"
+        continue-on-error: true
+
+      - name: List Reports
+        if: always()
+        run: |
+          echo "Reports generated:"
+          ls -la .lighthouseci/ || echo "No reports found"
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: myinnovation-reports-${{ github.run_number }}
+          path: |
+            .lighthouseci/*.html
+            .lighthouseci/*.json
+          retention-days: 30
+
+      - name: Write Summary
+        if: always()
+        run: |
+          echo "## MYINNOVATION Lighthouse Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Run | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Owner | Suresh |" >> $GITHUB_STEP_SUMMARY
+          echo "| Project | MYINNOVATION |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download artifacts below for full reports" >> $GITHUB_STEP_SUMMARY
