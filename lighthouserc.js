@@ -2,9 +2,7 @@ module.exports = {
   ci: {
     collect: {
       url: [
-        'https://web.dev/',
-        'https://www.accenture.com/',
-        'https://example.com/',
+        'https://www.accenture.com/us-en',
       ],
       numberOfRuns: 1,
       settings: {
